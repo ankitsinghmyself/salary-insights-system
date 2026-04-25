@@ -50,3 +50,13 @@ export const updateEmployee = async (
 
   return updatedEmployee;
 };
+export const deleteEmployee = async (id: string): Promise<boolean> => {
+  const exists = employeeStore.has(id);
+
+  if (!exists) {
+    return false;
+  }
+
+  employeeStore.delete(id);
+  return true;
+};
