@@ -10,3 +10,10 @@ export type Employee = CreateEmployeeInput & {
   id: string;
   fullName: string;
 };
+
+export type ListEmployeesParams = {
+  limit?: number;
+  offset?: number;
+  country?: string;
+  jobTitle?: string;
+};

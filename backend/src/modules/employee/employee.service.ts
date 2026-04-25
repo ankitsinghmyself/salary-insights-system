@@ -1,4 +1,4 @@
-import { CreateEmployeeInput, Employee } from "./employee.types";
+import { CreateEmployeeInput, Employee, ListEmployeesParams } from "./employee.types";
 import { validateEmployeeInput } from "./employee.validation";
 
 // simple in-memory store (temporary)
@@ -59,4 +59,34 @@ export const deleteEmployee = async (id: string): Promise<boolean> => {
 
   employeeStore.delete(id);
   return true;
+};
+export const listEmployees = async (
+  params: ListEmployeesParams = {}
+): Promise<{ data: Employee[]; total: number }> => {
+  const { limit, offset, country, jobTitle } = params;
+
+  // convert Map → Array
+  let employees = Array.from(employeeStore.values());
+
+  // 🔹 Filtering (FIRST)
+  if (country) {
+    employees = employees.filter((e) => e.country === country);
+  }
+
+  if (jobTitle) {
+    employees = employees.filter((e) => e.jobTitle === jobTitle);
+  }
+
+  const total = employees.length;
+
+  // 🔹 Pagination (AFTER filtering)
+  const paginated = employees.slice(
+    offset ?? 0,
+    (offset ?? 0) + (limit ?? employees.length)
+  );
+
+  return {
+    data: paginated,
+    total,
+  };
 };
