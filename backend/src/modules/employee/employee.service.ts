@@ -1,21 +1,13 @@
-type CreateEmployeeInput = {
-  firstName: string;
-  lastName: string;
-  jobTitle: string;
-  country: string;
-  salary: number;
-};
-
-type Employee = CreateEmployeeInput & {
-  id: string;
-  fullName: string;
-};
+import { CreateEmployeeInput, Employee } from "./employee.types";
+import { validateEmployeeInput } from "./employee.validation";
 
 export const createEmployee = async (
   input: CreateEmployeeInput
 ): Promise<Employee> => {
+  validateEmployeeInput(input);
+
   return {
-    id: "1", // temporary (will replace later)
+    id: "1", // still temporary
     ...input,
     fullName: `${input.firstName} ${input.lastName}`,
   };
