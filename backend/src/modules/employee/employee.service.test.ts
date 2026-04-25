@@ -1,7 +1,7 @@
-import { createEmployee } from "./employee.service";
+import { createEmployee, getEmployeeById } from "./employee.service";
 
-describe("Employee Service - Create", () => {
-  it("should create an employee with valid data", async () => {
+describe("Employee Service - Get", () => {
+  it("should return employee by id", async () => {
     const input = {
       firstName: "Ankit",
       lastName: "Singh",
@@ -10,11 +10,18 @@ describe("Employee Service - Create", () => {
       salary: 2000000,
     };
 
-    const employee = await createEmployee(input);
+    const created = await createEmployee(input);
 
-    expect(employee).toBeDefined();
-    expect(employee.id).toBeDefined();
-    expect(employee.fullName).toBe("Ankit Singh");
-    expect(employee.jobTitle).toBe(input.jobTitle);
+    const result = await getEmployeeById(created.id);
+
+    expect(result).toBeDefined();
+    expect(result?.id).toBe(created.id);
+    expect(result?.fullName).toBe("Ankit Singh");
+  });
+
+  it("should return null if employee does not exist", async () => {
+    const result = await getEmployeeById("non-existent-id");
+
+    expect(result).toBeNull();
   });
 });
