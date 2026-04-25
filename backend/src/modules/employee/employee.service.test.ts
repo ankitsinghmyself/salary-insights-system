@@ -1,27 +1,51 @@
-import { createEmployee, getEmployeeById } from "./employee.service";
+import {
+  createEmployee,
+  getEmployeeById,
+  updateEmployee,
+} from "./employee.service";
 
-describe("Employee Service - Get", () => {
-  it("should return employee by id", async () => {
-    const input = {
+describe("Employee Service - Update", () => {
+  it("should update an existing employee", async () => {
+    const created = await createEmployee({
       firstName: "Ankit",
       lastName: "Singh",
       jobTitle: "Frontend Engineer",
       country: "India",
       salary: 2000000,
-    };
+    });
 
-    const created = await createEmployee(input);
+    const updated = await updateEmployee(created.id, {
+      jobTitle: "Senior Frontend Engineer",
+      salary: 2500000,
+    });
 
-    const result = await getEmployeeById(created.id);
-
-    expect(result).toBeDefined();
-    expect(result?.id).toBe(created.id);
-    expect(result?.fullName).toBe("Ankit Singh");
+    expect(updated).toBeDefined();
+    expect(updated?.jobTitle).toBe("Senior Frontend Engineer");
+    expect(updated?.salary).toBe(2500000);
+    expect(updated?.fullName).toBe("Ankit Singh"); // unchanged
   });
 
   it("should return null if employee does not exist", async () => {
-    const result = await getEmployeeById("non-existent-id");
+    const result = await updateEmployee("invalid-id", {
+      jobTitle: "Something",
+    });
 
     expect(result).toBeNull();
+  });
+
+  it("should update fullName if firstName or lastName changes", async () => {
+    const created = await createEmployee({
+      firstName: "Ankit",
+      lastName: "Singh",
+      jobTitle: "Engineer",
+      country: "India",
+      salary: 2000000,
+    });
+
+    const updated = await updateEmployee(created.id, {
+      firstName: "Amit",
+    });
+
+    expect(updated?.fullName).toBe("Amit Singh");
   });
 });
