@@ -32,3 +32,4 @@ jest-cache/
 
 # Prisma (if you use later)
 prisma/migrations/
+/generated/prisma
