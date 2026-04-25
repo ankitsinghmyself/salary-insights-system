@@ -27,3 +27,26 @@ export const getEmployeeById = async (
 ): Promise<Employee | null> => {
   return employeeStore.get(id) || null;
 };
+
+export const updateEmployee = async (
+  id: string,
+  updates: Partial<CreateEmployeeInput>
+): Promise<Employee | null> => {
+  const existing = employeeStore.get(id);
+
+  if (!existing) {
+    return null;
+  }
+
+  const updatedEmployee: Employee = {
+    ...existing,
+    ...updates,
+    fullName: `${updates.firstName ?? existing.firstName} ${
+      updates.lastName ?? existing.lastName
+    }`,
+  };
+
+  employeeStore.set(id, updatedEmployee);
+
+  return updatedEmployee;
+};
