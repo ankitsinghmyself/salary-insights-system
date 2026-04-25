@@ -4,11 +4,12 @@ import {
   updateEmployee,
   deleteEmployee,
   listEmployees,
+  employeeStore,
 } from "./employee.service";
 import {
   getSalaryStatsByCountry,
   getAverageSalaryByRoleInCountry,
-} from "./salary.service";
+} from "../salary/salary.service";
 
 describe("Employee Service - Create", () => {
   it("should create an employee with valid data", async () => {
@@ -278,4 +279,7 @@ describe("Salary Service - Insights", () => {
 
     expect(stats).toBeNull();
   });
+});
+beforeEach(() => {
+  employeeStore.clear();
 });
