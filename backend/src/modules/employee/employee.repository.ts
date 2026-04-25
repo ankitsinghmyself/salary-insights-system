@@ -1,44 +1,51 @@
+import { prisma  } from "../../lib/prisma";
 import { Employee } from "./employee.types";
-
-// internal store (now hidden here)
-const employeeStore = new Map<string, Employee>();
-
-let currentId = 1;
-
 export const employeeRepository = {
-  create(data: Omit<Employee, "id">): Employee {
-    const employee: Employee = {
-      id: String(currentId++),
-      ...data,
-    };
+  async create(data: Omit<Employee, "id">): Promise<Employee> {
+    const employee = await prisma.employee.create({
+      data,
+    });
 
-    employeeStore.set(employee.id, employee);
     return employee;
   },
 
-  findById(id: string): Employee | null {
-    return employeeStore.get(id) || null;
+  async findById(id: string): Promise<Employee | null> {
+    return prisma.employee.findUnique({
+      where: { id },
+    });
   },
 
-  update(id: string, updated: Employee): Employee | null {
-    if (!employeeStore.has(id)) return null;
+  async update(id: string, updated: Employee): Promise<Employee | null> {
+    try {
+      const employee = await prisma.employee.update({
+        where: { id },
+        data: updated,
+      });
 
-    employeeStore.set(id, updated);
-    return updated;
+      return employee;
+    } catch {
+      return null;
+    }
   },
 
-  delete(id: string): boolean {
-    if (!employeeStore.has(id)) return false;
+  async delete(id: string): Promise<boolean> {
+    try {
+      await prisma.employee.delete({
+        where: { id },
+      });
 
-    employeeStore.delete(id);
-    return true;
+      return true;
+    } catch {
+      return false;
+    }
   },
 
-  findAll(): Employee[] {
-    return Array.from(employeeStore.values());
+  async findAll(): Promise<Employee[]> {
+    return prisma.employee.findMany();
   },
 
-  clear() {
-    employeeStore.clear();
+  // for tests
+  async clear() {
+    await prisma.employee.deleteMany();
   },
 };

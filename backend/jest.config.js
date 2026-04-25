@@ -8,6 +8,7 @@ module.exports = {
   testEnvironment: "node",
   rootDir: ".",
   testMatch: ["**/*.test.ts"],
+  setupFiles: ["<rootDir>/jest.setup.ts"],
   transform: {
     ...tsJestTransformCfg,
   },

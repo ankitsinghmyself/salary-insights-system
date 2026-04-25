@@ -7,7 +7,7 @@ export const createEmployee = async (
 ): Promise<Employee> => {
   validateEmployeeInput(input);
 
-  return employeeRepository.create({
+  return await employeeRepository.create({
     ...input,
     fullName: `${input.firstName} ${input.lastName}`,
   });
@@ -16,14 +16,14 @@ export const createEmployee = async (
 export const getEmployeeById = async (
   id: string
 ): Promise<Employee | null> => {
-  return employeeRepository.findById(id);
+  return await employeeRepository.findById(id);
 };
 
 export const updateEmployee = async (
   id: string,
   updates: Partial<CreateEmployeeInput>
 ): Promise<Employee | null> => {
-  const existing = employeeRepository.findById(id);
+  const existing = await employeeRepository.findById(id);
   if (!existing) return null;
 
   const updated: Employee = {
@@ -34,11 +34,11 @@ export const updateEmployee = async (
     }`,
   };
 
-  return employeeRepository.update(id, updated);
+  return await employeeRepository.update(id, updated);
 };
 
 export const deleteEmployee = async (id: string): Promise<boolean> => {
-  return employeeRepository.delete(id);
+  return await employeeRepository.delete(id);
 };
 
 export const listEmployees = async (
@@ -46,7 +46,7 @@ export const listEmployees = async (
 ): Promise<{ data: Employee[]; total: number }> => {
   const { limit, offset, country, jobTitle } = params;
 
-  let employees = employeeRepository.findAll();
+  let employees = await employeeRepository.findAll();
 
   if (country) {
     employees = employees.filter((e) => e.country === country);
