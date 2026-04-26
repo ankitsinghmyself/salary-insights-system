@@ -2,21 +2,18 @@ import { CreateEmployeeInput, Employee, ListEmployeesParams } from "./employee.t
 import { validateEmployeeInput } from "./employee.validation";
 import { employeeRepository } from "./employee.repository";
 
-export const createEmployee = async (
-  input: CreateEmployeeInput
-): Promise<Employee> => {
+export const createEmployee = async (input: CreateEmployeeInput): Promise<Employee> => {
   validateEmployeeInput(input);
 
-  return await employeeRepository.create({
+  return employeeRepository.create({
     ...input,
-    fullName: `${input.firstName} ${input.lastName}`,
+    experienceYears: input.experienceYears ?? 0,
+    fullName: `${input.firstName.trim()} ${input.lastName.trim()}`,
   });
 };
 
-export const getEmployeeById = async (
-  id: string
-): Promise<Employee | null> => {
-  return await employeeRepository.findById(id);
+export const getEmployeeById = async (id: string): Promise<Employee | null> => {
+  return employeeRepository.findById(id);
 };
 
 export const updateEmployee = async (
@@ -26,42 +23,36 @@ export const updateEmployee = async (
   const existing = await employeeRepository.findById(id);
   if (!existing) return null;
 
-  const updated: Employee = {
-    ...existing,
-    ...updates,
-    fullName: `${updates.firstName ?? existing.firstName} ${
-      updates.lastName ?? existing.lastName
-    }`,
-  };
+  const updatedFullName =
+    updates.firstName || updates.lastName
+      ? `${(updates.firstName ?? existing.firstName).trim()} ${(updates.lastName ?? existing.lastName).trim()}`
+      : existing.fullName;
 
-  return await employeeRepository.update(id, updated);
+  return employeeRepository.update(id, {
+    ...updates,
+    fullName: updatedFullName,
+  });
 };
 
 export const deleteEmployee = async (id: string): Promise<boolean> => {
-  return await employeeRepository.delete(id);
+  return employeeRepository.delete(id);
 };
 
 export const listEmployees = async (
   params: ListEmployeesParams = {}
 ): Promise<{ data: Employee[]; total: number }> => {
-  const { limit, offset, country, jobTitle } = params;
+  const [data, total] = await Promise.all([
+    employeeRepository.findMany(params),
+    employeeRepository.count(params),
+  ]);
 
-  let employees = await employeeRepository.findAll();
-
-  if (country) {
-    employees = employees.filter((e) => e.country === country);
-  }
-
-  if (jobTitle) {
-    employees = employees.filter((e) => e.jobTitle === jobTitle);
-  }
-
-  const total = employees.length;
-
-  const paginated = employees.slice(
-    offset ?? 0,
-    (offset ?? 0) + (limit ?? employees.length)
-  );
-
-  return { data: paginated, total };
+  return { data, total };
 };
+
+export const searchEmployees = async (
+  query: string,
+  params: Omit<ListEmployeesParams, "search"> = {}
+): Promise<{ data: Employee[]; total: number }> => {
+  return listEmployees({ ...params, search: query });
+};
+
