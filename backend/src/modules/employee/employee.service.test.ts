@@ -5,84 +5,75 @@ import {
   deleteEmployee,
   listEmployees,
 } from "./employee.service";
-import {
-  getSalaryStatsByCountry,
-  getAverageSalaryByRoleInCountry,
-} from "../salary/salary.service";
 import { employeeRepository } from "./employee.repository";
+
+const validEmployee = {
+  firstName: "Ankit",
+  lastName: "Singh",
+  jobTitle: "Frontend Engineer",
+  department: "Engineering",
+  country: "India",
+  salary: 2000000,
+};
 
 describe("Employee Service - Create", () => {
   it("should create an employee with valid data", async () => {
-    const input = {
-      firstName: "Ankit",
-      lastName: "Singh",
-      jobTitle: "Frontend Engineer",
-      country: "India",
-      salary: 2000000,
-    };
-
-    const employee = await createEmployee(input);
+    const employee = await createEmployee(validEmployee);
 
     expect(employee).toBeDefined();
     expect(employee.id).toBeDefined();
     expect(employee.fullName).toBe("Ankit Singh");
-    expect(employee.jobTitle).toBe(input.jobTitle);
+    expect(employee.jobTitle).toBe(validEmployee.jobTitle);
+    expect(employee.department).toBe("Engineering");
+    expect(employee.experienceYears).toBe(0);
+  });
+
+  it("should create an employee with experience years", async () => {
+    const employee = await createEmployee({
+      ...validEmployee,
+      firstName: "Test",
+      experienceYears: 5,
+    });
+
+    expect(employee.experienceYears).toBe(5);
   });
 });
 
 describe("Employee Service - Validation", () => {
   it("should throw error if first name is missing", async () => {
-    const input = {
-      firstName: "",
-      lastName: "Singh",
-      jobTitle: "Engineer",
-      country: "India",
-      salary: 2000000,
-    };
-
-    await expect(createEmployee(input)).rejects.toThrow(
-      "First name and last name are required"
-    );
+    await expect(
+      createEmployee({ ...validEmployee, firstName: "" })
+    ).rejects.toThrow("First name and last name are required");
   });
 
   it("should throw error if salary is less than or equal to 0", async () => {
-    const input = {
-      firstName: "Ankit",
-      lastName: "Singh",
-      jobTitle: "Engineer",
-      country: "India",
-      salary: 0,
-    };
-
-    await expect(createEmployee(input)).rejects.toThrow(
-      "Salary must be greater than 0"
-    );
+    await expect(
+      createEmployee({ ...validEmployee, salary: 0 })
+    ).rejects.toThrow("Salary must be a positive number");
   });
 
   it("should throw error if job title is missing", async () => {
-    const input = {
-      firstName: "Ankit",
-      lastName: "Singh",
-      jobTitle: "",
-      country: "India",
-      salary: 2000000,
-    };
+    await expect(
+      createEmployee({ ...validEmployee, jobTitle: "" })
+    ).rejects.toThrow("Job title is required");
+  });
 
-    await expect(createEmployee(input)).rejects.toThrow(
-      "Job title is required"
-    );
+  it("should throw error if department is missing", async () => {
+    await expect(
+      createEmployee({ ...validEmployee, department: "" })
+    ).rejects.toThrow("Department is required");
+  });
+
+  it("should throw error if experience years is negative", async () => {
+    await expect(
+      createEmployee({ ...validEmployee, experienceYears: -1 })
+    ).rejects.toThrow("Experience years must be a non-negative number");
   });
 });
 
 describe("Employee Service - Get", () => {
   it("should return employee by id", async () => {
-    const created = await createEmployee({
-      firstName: "Ankit",
-      lastName: "Singh",
-      jobTitle: "Frontend Engineer",
-      country: "India",
-      salary: 2000000,
-    });
+    const created = await createEmployee(validEmployee);
 
     const result = await getEmployeeById(created.id);
 
@@ -93,20 +84,13 @@ describe("Employee Service - Get", () => {
 
   it("should return null if employee does not exist", async () => {
     const result = await getEmployeeById("non-existent-id");
-
     expect(result).toBeNull();
   });
 });
 
 describe("Employee Service - Update", () => {
   it("should update an existing employee", async () => {
-    const created = await createEmployee({
-      firstName: "Ankit",
-      lastName: "Singh",
-      jobTitle: "Frontend Engineer",
-      country: "India",
-      salary: 2000000,
-    });
+    const created = await createEmployee(validEmployee);
 
     const updated = await updateEmployee(created.id, {
       jobTitle: "Senior Frontend Engineer",
@@ -128,13 +112,7 @@ describe("Employee Service - Update", () => {
   });
 
   it("should update fullName if firstName or lastName changes", async () => {
-    const created = await createEmployee({
-      firstName: "Ankit",
-      lastName: "Singh",
-      jobTitle: "Engineer",
-      country: "India",
-      salary: 2000000,
-    });
+    const created = await createEmployee(validEmployee);
 
     const updated = await updateEmployee(created.id, {
       firstName: "Amit",
@@ -142,17 +120,21 @@ describe("Employee Service - Update", () => {
 
     expect(updated?.fullName).toBe("Amit Singh");
   });
+
+  it("should update department", async () => {
+    const created = await createEmployee(validEmployee);
+
+    const updated = await updateEmployee(created.id, {
+      department: "Product",
+    });
+
+    expect(updated?.department).toBe("Product");
+  });
 });
 
 describe("Employee Service - Delete", () => {
   it("should delete an existing employee", async () => {
-    const created = await createEmployee({
-      firstName: "Ankit",
-      lastName: "Singh",
-      jobTitle: "Engineer",
-      country: "India",
-      salary: 2000000,
-    });
+    const created = await createEmployee(validEmployee);
 
     const result = await deleteEmployee(created.id);
 
@@ -164,7 +146,6 @@ describe("Employee Service - Delete", () => {
 
   it("should return false if employee does not exist", async () => {
     const result = await deleteEmployee("invalid-id");
-
     expect(result).toBe(false);
   });
 });
@@ -175,6 +156,7 @@ describe("Employee Service - List", () => {
       firstName: "Ankit",
       lastName: "Singh",
       jobTitle: "Engineer",
+      department: "Engineering",
       country: "India",
       salary: 2000000,
     });
@@ -183,6 +165,7 @@ describe("Employee Service - List", () => {
       firstName: "John",
       lastName: "Doe",
       jobTitle: "Engineer",
+      department: "Engineering",
       country: "USA",
       salary: 3000000,
     });
@@ -191,6 +174,7 @@ describe("Employee Service - List", () => {
       firstName: "Jane",
       lastName: "Smith",
       jobTitle: "Manager",
+      department: "HR",
       country: "India",
       salary: 4000000,
     });
@@ -220,66 +204,20 @@ describe("Employee Service - List", () => {
 
     expect(result.data.every((e) => e.jobTitle === "Manager")).toBe(true);
   });
-});
-describe("Salary Service - Insights", () => {
-  beforeEach(async () => {
-    // Seed test data
-    await createEmployee({
-      firstName: "A",
-      lastName: "One",
-      jobTitle: "Engineer",
-      country: "India",
-      salary: 100,
-    });
 
-    await createEmployee({
-      firstName: "B",
-      lastName: "Two",
-      jobTitle: "Engineer",
-      country: "India",
-      salary: 300,
-    });
+  it("should filter by department", async () => {
+    const result = await listEmployees({ department: "Engineering" });
 
-    await createEmployee({
-      firstName: "C",
-      lastName: "Three",
-      jobTitle: "Manager",
-      country: "India",
-      salary: 500,
-    });
-
-    await createEmployee({
-      firstName: "D",
-      lastName: "Four",
-      jobTitle: "Engineer",
-      country: "USA",
-      salary: 1000,
-    });
+    expect(result.data.every((e) => e.department === "Engineering")).toBe(true);
   });
 
-  it("should return min, max, and average salary for a country", async () => {
-    const stats = await getSalaryStatsByCountry("India");
+  it("should apply multiple filters", async () => {
+    const result = await listEmployees({ country: "India", jobTitle: "Engineer" });
 
-    expect(stats.min).toBe(100);
-    expect(stats.max).toBe(500);
-    expect(stats.avg).toBe(300);
-  });
-
-  it("should return average salary by job title within a country", async () => {
-    const avg = await getAverageSalaryByRoleInCountry(
-      "India",
-      "Engineer"
-    );
-
-    expect(avg).toBe(200); // (100 + 300) / 2
-  });
-
-  it("should return null if no employees exist for country", async () => {
-    const stats = await getSalaryStatsByCountry("Germany");
-
-    expect(stats).toBeNull();
+    expect(result.data.every((e) => e.country === "India" && e.jobTitle === "Engineer")).toBe(true);
   });
 });
+
 beforeEach(() => {
   employeeRepository.clear();
 });
