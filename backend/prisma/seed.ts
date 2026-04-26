@@ -3,15 +3,18 @@ import { faker } from "@faker-js/faker";
 
 const prisma = new PrismaClient();
 
-const BATCH_SIZE = 1000;
-const TOTAL = 10000;
+/**
+ * CONFIG (production-safe via env)
+ */
+const TOTAL = Number(process.env.SEED_TOTAL || 10000);
+const BATCH_SIZE = Number(process.env.SEED_BATCH_SIZE || 1000);
+const CLEAR_BEFORE_SEED = process.env.SEED_RESET === "true";
 
-// simple pools (faster than faker loops for some fields)
 const jobTitles = [
   "Software Engineer",
   "Senior Engineer",
-  "Manager",
   "Tech Lead",
+  "Manager",
   "QA Engineer",
   "DevOps Engineer",
 ];
@@ -32,25 +35,51 @@ function generateEmployee() {
   };
 }
 
+/**
+ * Optional cleanup (idempotent seeding)
+ */
+async function clearData() {
+  console.log("🧹 Clearing existing employees...");
+  await prisma.employee.deleteMany();
+}
+
+/**
+ * Batch insert for performance
+ */
+async function seedBatch(batchNumber: number, totalBatches: number) {
+  const data = Array.from({ length: BATCH_SIZE }).map(generateEmployee);
+
+  await prisma.employee.createMany({
+    data,
+  });
+
+  console.log(
+    `Batch ${batchNumber}/${totalBatches} inserted (${data.length} records)`
+  );
+}
+
 async function main() {
-  console.log("Seeding 10,000 employees...");
+  console.log("Starting production-grade seed...");
 
-  for (let i = 0; i < TOTAL; i += BATCH_SIZE) {
-    const batch = Array.from({ length: BATCH_SIZE }).map(generateEmployee);
+  console.log(`Total: ${TOTAL}`);
+  console.log(`Batch Size: ${BATCH_SIZE}`);
 
-    await prisma.employee.createMany({
-      data: batch,
-    });
-
-    console.log(`Inserted ${i + BATCH_SIZE}/${TOTAL}`);
+  if (CLEAR_BEFORE_SEED) {
+    await clearData();
   }
 
-  console.log("Seeding complete.");
+  const totalBatches = Math.ceil(TOTAL / BATCH_SIZE);
+
+  for (let i = 1; i <= totalBatches; i++) {
+    await seedBatch(i, totalBatches);
+  }
+
+  console.log("Seeding completed successfully");
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error("❌ Seeding failed:", e);
     process.exit(1);
   })
   .finally(async () => {

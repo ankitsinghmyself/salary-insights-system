@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "dev": "ts-node-dev src/app/server.ts"
+    "dev": "ts-node-dev src/app/server.ts",
+    "seed": "cross-env SEED_RESET=true ts-node prisma/seed.ts"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,7 @@
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/supertest": "^7.2.0",
+    "cross-env": "^10.1.0",
     "jest": "^30.3.0",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.9",
