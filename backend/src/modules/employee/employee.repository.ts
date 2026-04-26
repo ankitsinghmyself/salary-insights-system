@@ -1,28 +1,32 @@
-import { prisma  } from "../../lib/prisma";
-import { Employee } from "./employee.types";
-export const employeeRepository = {
-  async create(data: Omit<Employee, "id">): Promise<Employee> {
-    const employee = await prisma.employee.create({
-      data,
-    });
+import { prisma } from "../../lib/prisma";
+import { Employee, ListEmployeesParams } from "./employee.types";
 
-    return employee;
+type EmployeeCreateInput = Omit<Employee, "id" | "createdAt" | "updatedAt">;
+
+function buildWhere(
+  country?: string,
+  jobTitle?: string,
+  department?: string
+): { country?: string; jobTitle?: string; department?: string } {
+  const where: { country?: string; jobTitle?: string; department?: string } = {};
+  if (country) where.country = country;
+  if (jobTitle) where.jobTitle = jobTitle;
+  if (department) where.department = department;
+  return where;
+}
+
+export const employeeRepository = {
+  async create(data: EmployeeCreateInput): Promise<Employee> {
+    return prisma.employee.create({ data }) as Promise<Employee>;
   },
 
   async findById(id: string): Promise<Employee | null> {
-    return prisma.employee.findUnique({
-      where: { id },
-    });
+    return prisma.employee.findUnique({ where: { id } }) as Promise<Employee | null>;
   },
 
-  async update(id: string, updated: Employee): Promise<Employee | null> {
+  async update(id: string, data: Partial<EmployeeCreateInput>): Promise<Employee | null> {
     try {
-      const employee = await prisma.employee.update({
-        where: { id },
-        data: updated,
-      });
-
-      return employee;
+      return (await prisma.employee.update({ where: { id }, data })) as Employee;
     } catch {
       return null;
     }
@@ -30,22 +34,120 @@ export const employeeRepository = {
 
   async delete(id: string): Promise<boolean> {
     try {
-      await prisma.employee.delete({
-        where: { id },
-      });
-
+      await prisma.employee.delete({ where: { id } });
       return true;
     } catch {
       return false;
     }
   },
 
-  async findAll(): Promise<Employee[]> {
-    return prisma.employee.findMany();
+  async findMany(params: ListEmployeesParams): Promise<Employee[]> {
+    const { limit, offset, country, jobTitle, department } = params;
+    const where = buildWhere(country, jobTitle, department);
+
+    const query: {
+      where: typeof where;
+      skip: number;
+      take?: number;
+      orderBy: { createdAt: "desc" };
+    } = {
+      where,
+      skip: offset ?? 0,
+      orderBy: { createdAt: "desc" },
+    };
+
+    if (limit !== undefined) {
+      query.take = limit;
+    }
+
+    return prisma.employee.findMany(query) as Promise<Employee[]>;
   },
 
-  // for tests
-  async clear() {
+  async count(params: Pick<ListEmployeesParams, "country" | "jobTitle" | "department">): Promise<number> {
+    const { country, jobTitle, department } = params;
+    const where = buildWhere(country, jobTitle, department);
+
+    return prisma.employee.count({ where });
+  },
+
+  async getSalaryStatsByCountry(country: string): Promise<{ min: number; max: number; avg: number } | null> {
+    const result = await prisma.employee.aggregate({
+      where: { country },
+      _min: { salary: true },
+      _max: { salary: true },
+      _avg: { salary: true },
+    });
+
+    if (result._min.salary === null) return null;
+
+    return {
+      min: result._min.salary,
+      max: result._max.salary!,
+      avg: Math.round(result._avg.salary!),
+    };
+  },
+
+  async getAverageSalaryByRoleInCountry(country: string, jobTitle: string): Promise<number | null> {
+    const result = await prisma.employee.aggregate({
+      where: { country, jobTitle },
+      _avg: { salary: true },
+    });
+
+    if (result._avg.salary === null) return null;
+
+    return Math.round(result._avg.salary);
+  },
+
+  async getOverallStats(): Promise<{ min: number; max: number; avg: number; total: number }> {
+    const [aggregate, total] = await Promise.all([
+      prisma.employee.aggregate({
+        _min: { salary: true },
+        _max: { salary: true },
+        _avg: { salary: true },
+      }),
+      prisma.employee.count(),
+    ]);
+
+    return {
+      min: aggregate._min.salary ?? 0,
+      max: aggregate._max.salary ?? 0,
+      avg: Math.round(aggregate._avg.salary ?? 0),
+      total,
+    };
+  },
+
+  async getAverageSalaryByJobTitle(): Promise<{ jobTitle: string; average: number; count: number }[]> {
+    const results = await prisma.employee.groupBy({
+      by: ["jobTitle"],
+      _avg: { salary: true },
+      _count: { id: true },
+    });
+
+    return results.map((r) => ({
+      jobTitle: r.jobTitle,
+      average: Math.round(r._avg.salary!),
+      count: r._count.id,
+    }));
+  },
+
+  async getTopEarners(country?: string, limit = 10): Promise<Employee[]> {
+    const query: {
+      where?: { country: string };
+      orderBy: { salary: "desc" };
+      take: number;
+    } = {
+      orderBy: { salary: "desc" },
+      take: limit,
+    };
+
+    if (country) {
+      query.where = { country };
+    }
+
+    return prisma.employee.findMany(query) as Promise<Employee[]>;
+  },
+
+  async clear(): Promise<void> {
     await prisma.employee.deleteMany();
   },
 };
