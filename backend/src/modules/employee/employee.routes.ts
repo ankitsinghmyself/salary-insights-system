@@ -22,47 +22,18 @@ const router = Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - firstName
- *               - lastName
- *               - jobTitle
- *               - country
- *               - salary
+ *             required: [firstName, lastName, jobTitle, department, country, salary]
  *             properties:
- *               firstName:
- *                 type: string
- *               lastName:
- *                 type: string
- *               jobTitle:
- *                 type: string
- *               country:
- *                 type: string
- *               salary:
- *                 type: number
+ *               firstName: { type: string }
+ *               lastName: { type: string }
+ *               jobTitle: { type: string }
+ *               department: { type: string }
+ *               country: { type: string }
+ *               salary: { type: integer }
+ *               experienceYears: { type: integer }
  *     responses:
- *       201:
- *         description: Employee created
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                 firstName:
- *                   type: string
- *                 lastName:
- *                   type: string
- *                 jobTitle:
- *                   type: string
- *                 country:
- *                   type: string
- *                 salary:
- *                   type: number
- *                 fullName:
- *                   type: string
- *       400:
- *         description: Validation error
+ *       201: { description: Employee created }
+ *       400: { description: Validation error }
  */
 router.post("/", async (req, res, next) => {
   try {
@@ -77,54 +48,34 @@ router.post("/", async (req, res, next) => {
  * @openapi
  * /api/employees:
  *   get:
- *     summary: List all employees
+ *     summary: List all employees with pagination and filters
  *     tags: [Employees]
  *     parameters:
  *       - in: query
  *         name: limit
- *         schema:
- *           type: integer
+ *         schema: { type: integer }
  *       - in: query
  *         name: offset
- *         schema:
- *           type: integer
+ *         schema: { type: integer }
  *       - in: query
  *         name: country
- *         schema:
- *           type: string
+ *         schema: { type: string }
  *       - in: query
  *         name: jobTitle
- *         schema:
- *           type: string
+ *         schema: { type: string }
+ *       - in: query
+ *         name: department
+ *         schema: { type: string }
  *     responses:
  *       200:
- *         description: List of employees
+ *         description: Paginated list of employees
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: string
- *                       firstName:
- *                         type: string
- *                       lastName:
- *                         type: string
- *                       jobTitle:
- *                         type: string
- *                       country:
- *                         type: string
- *                       salary:
- *                         type: number
- *                       fullName:
- *                         type: string
- *                 total:
- *                   type: integer
+ *                 data: { type: array }
+ *                 total: { type: integer }
  */
 router.get("/", async (req, res, next) => {
   try {
@@ -133,6 +84,7 @@ router.get("/", async (req, res, next) => {
       ...(req.query.offset && { offset: Number(req.query.offset) }),
       ...(req.query.country && { country: req.query.country as string }),
       ...(req.query.jobTitle && { jobTitle: req.query.jobTitle as string }),
+      ...(req.query.department && { department: req.query.department as string }),
     };
     const result = await listEmployees(params);
     res.json(result);
@@ -151,32 +103,10 @@ router.get("/", async (req, res, next) => {
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
+ *         schema: { type: string }
  *     responses:
- *       200:
- *         description: Employee found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                 firstName:
- *                   type: string
- *                 lastName:
- *                   type: string
- *                 jobTitle:
- *                   type: string
- *                 country:
- *                   type: string
- *                 salary:
- *                   type: number
- *                 fullName:
- *                   type: string
- *       404:
- *         description: Employee not found
+ *       200: { description: Employee found }
+ *       404: { description: Employee not found }
  */
 router.get("/:id", async (req, res, next) => {
   try {
@@ -201,8 +131,7 @@ router.get("/:id", async (req, res, next) => {
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
+ *         schema: { type: string }
  *     requestBody:
  *       required: true
  *       content:
@@ -210,42 +139,17 @@ router.get("/:id", async (req, res, next) => {
  *           schema:
  *             type: object
  *             properties:
- *               firstName:
- *                 type: string
- *               lastName:
- *                 type: string
- *               jobTitle:
- *                 type: string
- *               country:
- *                 type: string
- *               salary:
- *                 type: number
+ *               firstName: { type: string }
+ *               lastName: { type: string }
+ *               jobTitle: { type: string }
+ *               department: { type: string }
+ *               country: { type: string }
+ *               salary: { type: integer }
+ *               experienceYears: { type: integer }
  *     responses:
- *       200:
- *         description: Employee updated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                 firstName:
- *                   type: string
- *                 lastName:
- *                   type: string
- *                 jobTitle:
- *                   type: string
- *                 country:
- *                   type: string
- *                 salary:
- *                   type: number
- *                 fullName:
- *                   type: string
- *       404:
- *         description: Employee not found
- *       400:
- *         description: Validation error
+ *       200: { description: Employee updated }
+ *       404: { description: Employee not found }
+ *       400: { description: Validation error }
  */
 router.put("/:id", async (req, res, next) => {
   try {
@@ -270,13 +174,10 @@ router.put("/:id", async (req, res, next) => {
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
+ *         schema: { type: string }
  *     responses:
- *       204:
- *         description: Employee deleted
- *       404:
- *         description: Employee not found
+ *       204: { description: Employee deleted }
+ *       404: { description: Employee not found }
  */
 router.delete("/:id", async (req, res, next) => {
   try {
