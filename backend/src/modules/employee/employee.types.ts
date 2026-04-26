@@ -28,4 +28,5 @@ export type ListEmployeesParams = {
   country?: string;
   jobTitle?: string;
   department?: string;
+  search?: string;
 };

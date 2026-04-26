@@ -49,3 +49,10 @@ export const listEmployees = async (
   return { data, total };
 };
 
+export const searchEmployees = async (
+  query: string,
+  params: Omit<ListEmployeesParams, "search"> = {}
+): Promise<{ data: Employee[]; total: number }> => {
+  return listEmployees({ ...params, search: query });
+};
+

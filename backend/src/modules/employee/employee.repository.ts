@@ -6,12 +6,16 @@ type EmployeeCreateInput = Omit<Employee, "id" | "createdAt" | "updatedAt">;
 function buildWhere(
   country?: string,
   jobTitle?: string,
-  department?: string
-): { country?: string; jobTitle?: string; department?: string } {
-  const where: { country?: string; jobTitle?: string; department?: string } = {};
+  department?: string,
+  search?: string
+): { country?: string; jobTitle?: string; department?: string; fullName?: { contains: string } } {
+  const where: { country?: string; jobTitle?: string; department?: string; fullName?: { contains: string } } = {};
   if (country) where.country = country;
   if (jobTitle) where.jobTitle = jobTitle;
   if (department) where.department = department;
+  if (search?.trim()) {
+    where.fullName = { contains: search.trim() };
+  }
   return where;
 }
 
@@ -42,8 +46,8 @@ export const employeeRepository = {
   },
 
   async findMany(params: ListEmployeesParams): Promise<Employee[]> {
-    const { limit, offset, country, jobTitle, department } = params;
-    const where = buildWhere(country, jobTitle, department);
+    const { limit, offset, country, jobTitle, department, search } = params;
+    const where = buildWhere(country, jobTitle, department, search);
 
     const query: {
       where: typeof where;
@@ -63,9 +67,9 @@ export const employeeRepository = {
     return prisma.employee.findMany(query) as Promise<Employee[]>;
   },
 
-  async count(params: Pick<ListEmployeesParams, "country" | "jobTitle" | "department">): Promise<number> {
-    const { country, jobTitle, department } = params;
-    const where = buildWhere(country, jobTitle, department);
+  async count(params: Pick<ListEmployeesParams, "country" | "jobTitle" | "department" | "search">): Promise<number> {
+    const { country, jobTitle, department, search } = params;
+    const where = buildWhere(country, jobTitle, department, search);
 
     return prisma.employee.count({ where });
   },
