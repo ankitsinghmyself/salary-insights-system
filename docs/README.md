@@ -93,6 +93,37 @@ Key focus areas:
 
 ---
 
+## 📚 API Documentation (Swagger)
+
+The backend exposes interactive API documentation via **Swagger UI**.
+
+### Accessing Swagger UI
+
+Once the backend server is running, open your browser and navigate to:
+
+```
+http://localhost:8000/api-docs
+```
+
+### Available Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/employees` | Create a new employee |
+| `GET` | `/api/employees` | List all employees (supports pagination & filtering) |
+| `GET` | `/api/employees/:id` | Get employee by ID |
+| `PUT` | `/api/employees/:id` | Update an employee |
+| `DELETE` | `/api/employees/:id` | Delete an employee |
+| `GET` | `/api/salary/stats/:country` | Get salary statistics (min/max/avg) by country |
+| `GET` | `/api/salary/average/:country/:jobTitle` | Get average salary by role in a country |
+
+### Swagger Configuration
+
+Swagger is configured in `backend/src/docs/swagger.ts` using `swagger-jsdoc` and `swagger-ui-express`.  
+All route definitions include `@openapi` JSDoc annotations that are automatically scanned and rendered by Swagger UI.
+
+---
+
 ## 🧪 Testing Strategy (TDD)
 
 This project follows strict **Test-Driven Development**:
