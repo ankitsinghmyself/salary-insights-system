@@ -6,6 +6,7 @@ import {
   listEmployees,
 } from "./employee.service";
 import { employeeRepository } from "./employee.repository";
+import { ValidationError } from "../../lib/errors";
 
 const validEmployee = {
   firstName: "Ankit",
@@ -216,8 +217,50 @@ describe("Employee Service - List", () => {
 
     expect(result.data.every((e) => e.country === "India" && e.jobTitle === "Engineer")).toBe(true);
   });
+
+  it("should search by full name", async () => {
+    const result = await listEmployees({ search: "Ankit" });
+
+    expect(result.data.length).toBe(1);
+    expect(result.data[0]?.fullName).toBe("Ankit Singh");
+    expect(result.total).toBe(1);
+  });
+
+  it("should search case-insensitively", async () => {
+    const result = await listEmployees({ search: "ankit" });
+
+    expect(result.data.length).toBe(1);
+    expect(result.data[0]?.fullName).toBe("Ankit Singh");
+  });
+
+  it("should search with partial match", async () => {
+    const result = await listEmployees({ search: "Singh" });
+
+    expect(result.data.length).toBe(1);
+    expect(result.data[0]?.fullName).toBe("Ankit Singh");
+  });
+
+  it("should combine search with filters", async () => {
+    const result = await listEmployees({ country: "India", search: "Engineer" });
+
+    // "Engineer" is in jobTitle, not fullName, so should return 0 for fullName search
+    expect(result.data.length).toBe(0);
+  });
+
+  it("should return empty for non-matching search", async () => {
+    const result = await listEmployees({ search: "NonExistent" });
+
+    expect(result.data.length).toBe(0);
+    expect(result.total).toBe(0);
+  });
+
+  it("should throw ValidationError for invalid input", async () => {
+    await expect(createEmployee({ ...validEmployee, salary: 0 })).rejects.toBeInstanceOf(
+      ValidationError
+    );
+  });
 });
 
-beforeEach(() => {
-  employeeRepository.clear();
+beforeEach(async () => {
+  await employeeRepository.clear();
 });

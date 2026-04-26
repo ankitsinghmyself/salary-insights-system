@@ -36,6 +36,23 @@ describe("Employee Routes", () => {
 
       expect(res.body.message).toContain("Salary");
     });
+
+    it("should trim string inputs", async () => {
+      const res = await request(app)
+        .post("/api/employees")
+        .send({
+          ...validEmployee,
+          firstName: "  Ankit  ",
+          lastName: "  Singh  ",
+          country: "  India  ",
+        })
+        .expect(201);
+
+      expect(res.body.firstName).toBe("Ankit");
+      expect(res.body.lastName).toBe("Singh");
+      expect(res.body.country).toBe("India");
+      expect(res.body.fullName).toBe("Ankit Singh");
+    });
   });
 
   describe("GET /api/employees", () => {
@@ -63,6 +80,44 @@ describe("Employee Routes", () => {
 
       expect(res.body.data.length).toBe(1);
       expect(res.body.data[0].country).toBe("USA");
+    });
+
+    it("should search by full name", async () => {
+      await request(app).post("/api/employees").send(validEmployee).expect(201);
+      await request(app)
+        .post("/api/employees")
+        .send({ ...validEmployee, firstName: "John", lastName: "Doe" })
+        .expect(201);
+
+      const res = await request(app).get("/api/employees?search=Ankit").expect(200);
+
+      expect(res.body.data.length).toBe(1);
+      expect(res.body.data[0].fullName).toBe("Ankit Singh");
+      expect(res.body.total).toBe(1);
+    });
+
+    it("should search case-insensitively", async () => {
+      await request(app).post("/api/employees").send(validEmployee).expect(201);
+
+      const res = await request(app).get("/api/employees?search=ankit").expect(200);
+
+      expect(res.body.data.length).toBe(1);
+      expect(res.body.data[0].fullName).toBe("Ankit Singh");
+    });
+
+    it("should combine search with filters", async () => {
+      await request(app).post("/api/employees").send(validEmployee).expect(201);
+      await request(app)
+        .post("/api/employees")
+        .send({ ...validEmployee, firstName: "John", lastName: "Doe", country: "USA" })
+        .expect(201);
+
+      const res = await request(app)
+        .get("/api/employees?country=India&search=Ankit")
+        .expect(200);
+
+      expect(res.body.data.length).toBe(1);
+      expect(res.body.data[0].country).toBe("India");
     });
   });
 
@@ -106,6 +161,21 @@ describe("Employee Routes", () => {
         .put("/api/employees/non-existent")
         .send({ jobTitle: "Test" })
         .expect(404);
+    });
+
+    it("should trim string inputs on update", async () => {
+      const createRes = await request(app)
+        .post("/api/employees")
+        .send(validEmployee)
+        .expect(201);
+
+      const res = await request(app)
+        .put(`/api/employees/${createRes.body.id}`)
+        .send({ firstName: "  Amit  " })
+        .expect(200);
+
+      expect(res.body.firstName).toBe("Amit");
+      expect(res.body.fullName).toBe("Amit Singh");
     });
   });
 
