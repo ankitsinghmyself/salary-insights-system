@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "dev": "ts-node-dev src/app/server.ts",
+    "dev": "ts-node-dev --respawn --transpile-only src/app/server.ts",
     "seed": "cross-env SEED_RESET=true ts-node prisma/seed.ts"
   },
   "keywords": [],
