@@ -31,7 +31,7 @@ Instead of just CRUD operations, the system focuses on:
 
 ## 🏗️ Architecture
 
-Controller → Service → Repository → Database
+Routes → Service → Repository → Database
 
 - Service Layer → Business logic  
 - Repository Layer → Database abstraction  
@@ -43,7 +43,7 @@ Controller → Service → Repository → Database
 ## 🛠 Tech Stack
 
 - Backend: Node.js, Express, TypeScript  
-- Database: SQLite + Prisma  
+- Database: SQLite + Prisma (PostgreSQL-ready via Prisma migration)
 - Testing: Jest  
 - API Docs: Swagger  
 
@@ -53,11 +53,16 @@ Controller → Service → Repository → Database
 
 ### Employee Management
 - Create, update, delete employees  
-- View employees  
+- View employees with pagination  
+- Filter employees by country, job title, department  
+- Search employees by full name (case-insensitive)  
 
 ### Salary Insights
+- Overall salary statistics (min / max / avg / total employees)  
 - Min / Max / Average salary by country  
-- Average salary by job title  
+- Average salary by job title globally  
+- Average salary by role within a country  
+- Top earners globally or by country
 
 ---
 
@@ -124,9 +129,11 @@ All logic and final decisions were reviewed manually.
 
 ## 📌 Future Improvements
 
-- Pagination & filtering  
-- Advanced salary analytics  
-- Role-based access  
+- Frontend UI (Next.js)  
+- Authentication & role-based access  
+- Advanced salary analytics & trends  
+- Caching layer (Redis)  
+- Export reports (CSV / PDF)
 
 ---
 

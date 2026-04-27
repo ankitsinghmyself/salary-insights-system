@@ -41,7 +41,8 @@ AI was **not blindly trusted**. Every output was:
 - Improved clarity and separation of concerns
 
 **Decision:**
-- Adopted structure with modifications for simplicity and readability
+- Evolved to `routes → service → repository` for simplicity
+- Removed controller layer; routes directly handle HTTP delegation
 
 ---
 
@@ -133,7 +134,7 @@ TDD acted as a **safety net**:
 | Aggregation | In-memory logic | DB-level aggregation |
 | Seeding | Loop insert | Batch insert |
 | Validation | Library-heavy | Lightweight custom validation |
-| Architecture | Generic structure | Modular layered design |
+| Architecture | Generic structure | Modular layered design (routes → service → repository) |
 
 ---
 

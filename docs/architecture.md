@@ -18,15 +18,15 @@ Design a scalable, maintainable, and testable system to manage employee data and
 
 ## 🧩 High-Level Architecture
 
-Frontend (Next.js)  
+Frontend (Next.js 16 + React 19)  
 ↓  
-Backend API (Node.js)  
+Backend API (Node.js + Express)  
 ↓  
 Service Layer (Business Logic)  
 ↓  
 Repository Layer (Data Access)  
 ↓  
-Database (PostgreSQL)  
+Database (SQLite)
 
 ---
 
@@ -34,12 +34,12 @@ Database (PostgreSQL)
 
 The backend follows a layered architecture:
 
-Controller → Service → Repository → Database  
+Routes → Service → Repository → Database  
 
-### Controller Layer
+### Routes Layer
 - Handles HTTP requests & responses  
 - Performs input validation  
-- Delegates to service layer  
+- Delegates to service layer
 
 ### Service Layer
 - Contains business logic  
@@ -52,8 +52,67 @@ Controller → Service → Repository → Database
 - Abstracts persistence logic  
 
 ### Database Layer
-- PostgreSQL database  
+- SQLite database  
 - Optimized for aggregation queries  
+- Lightweight and zero-config for development
+
+---
+
+## 🎨 Frontend Architecture
+
+The frontend follows a feature-based component architecture with strict separation of concerns:
+
+```
+frontend/  
+  app/              # Next.js App Router pages
+    page.tsx        # Dashboard (salary insights)
+    employees/      # Employee management page
+    layout.tsx      # Root layout with nav + QueryClientProvider
+  components/
+    ui/             # Reusable UI primitives (Button, Input, Card, Dialog, etc.)
+    features/       # Feature-specific components
+      employee-list.tsx
+      employee-form.tsx
+      salary-dashboard.tsx
+      country-stats.tsx
+      job-title-stats.tsx
+      top-earners.tsx
+    providers/      # React context/providers
+      query-provider.tsx
+  hooks/            # Custom React Query hooks (SRP)
+    use-employees.ts
+    use-salary-stats.ts
+  lib/
+    api/            # API client layer (SRP)
+      client.ts     # Axios instance
+      types.ts      # Shared TypeScript types
+      employees.ts  # Employee API methods
+      salary.ts     # Salary API methods
+    utils.ts        # Utility functions
+```
+
+### Design Decisions
+
+**Single Responsibility Principle applied:**
+- `lib/api/employees.ts` → Only employee API calls
+- `lib/api/salary.ts` → Only salary API calls  
+- `hooks/use-employees.ts` → Only employee data fetching logic
+- `hooks/use-salary-stats.ts` → Only salary stats logic
+- `components/features/employee-list.tsx` → Only employee list UI
+- `components/features/salary-dashboard.tsx` → Only stats display UI
+
+**Test-Driven Development:**
+- API layer: `employees.test.ts`, `salary.test.ts` — mocked axios
+- Hooks: `use-employees.test.tsx`, `use-salary-stats.test.tsx` — React Query test utilities
+- Components: `button.test.tsx`, `empty-state.test.tsx`, `salary-dashboard.test.tsx`
+
+**Tech Stack:**
+- Next.js 16 + React 19 + TypeScript
+- Tailwind CSS v4 for styling
+- TanStack Query for server state
+- React Hook Form + Zod for form validation
+- Radix UI for accessible primitives
+- Vitest + React Testing Library for testing
 
 ---
 
@@ -62,14 +121,19 @@ Controller → Service → Repository → Database
 backend/  
   modules/  
     employee/  
-      employee.controller.ts  
-      employee.service.ts  
-      employee.repository.ts  
-      employee.test.ts  
+      employee.routes.ts      # Express routes (HTTP layer)
+      employee.service.ts     # Business logic
+      employee.repository.ts  # Database access
+      employee.types.ts       # TypeScript types
+      employee.validation.ts  # Input validation
+      employee.service.test.ts
+      employee.routes.test.ts
 
     salary/  
-      salary.service.ts  
-      salary.test.ts  
+      salary.routes.ts        # Express routes (HTTP layer)
+      salary.service.ts       # Business logic
+      salary.service.test.ts
+      salary.routes.test.ts
 ```
 ---
 
@@ -83,11 +147,11 @@ backend/
 - fullName: Computed field  
 - jobTitle: Role of employee  
 - country: Employee location  
-- salary: Compensation  
-- currency: Salary currency  
+- salary: Compensation (integer)  
 - department: Department name  
-- experienceYears: Years of experience  
+- experienceYears: Years of experience (default: 0)  
 - createdAt: Timestamp  
+- updatedAt: Timestamp
 
 ---
 
@@ -95,10 +159,12 @@ backend/
 
 All salary insights are computed using database-level aggregation.
 
-### Examples:
-- Average salary by country  
-- Average salary by job title within a country  
-- Min / Max salary per country  
+### Implemented Endpoints:
+- `GET /api/salary/overall-stats` — Overall min / max / avg / total employees  
+- `GET /api/salary/stats/:country` — Min / max / avg salary for a country  
+- `GET /api/salary/average/:country/:jobTitle` — Average salary by role in a country  
+- `GET /api/salary/by-jobtitle` — Average salary grouped by job title globally  
+- `GET /api/salary/top-earners?country=&limit=` — Top earning employees globally or by country
 
 ### Why DB Aggregation?
 
@@ -113,6 +179,7 @@ All salary insights are computed using database-level aggregation.
 ### Indexing
 - Index on `country`  
 - Index on `jobTitle`  
+- Index on `department`
 
 ### Query Optimization
 - Use GROUP BY queries  
@@ -121,6 +188,12 @@ All salary insights are computed using database-level aggregation.
 ### Pagination
 - Required for employee listing  
 - Prevents API and UI overload  
+
+### Frontend Optimizations
+- TanStack Query caching with staleTime
+- Pagination on employee list (10 per page)
+- Search debouncing ready for implementation
+- Skeleton loaders for loading states
 
 ---
 
@@ -144,24 +217,19 @@ Flow:
 
 ### Test Types
 
-- Unit Tests → Service & utilities  
-- Integration Tests → API endpoints  
-- Edge Case Tests → Invalid inputs, empty datasets  
+- **Unit Tests** → Service & utilities  
+- **Integration Tests** → API endpoints  
+- **Component Tests** → UI rendering & interactions
+- **Hook Tests** → React Query logic
 
----
+### Frontend Test Coverage
 
-## 🎨 Frontend Architecture
-```
-frontend/  
-  features/  
-    employees/  
-    analytics/  
-  components/  
-```
-### Key Concepts
-- Feature-based structure  
-- Reusable components  
-- API abstraction layer  
+| Layer | Tests |
+|-------|-------|
+| API Client | `employees.test.ts`, `salary.test.ts` |
+| Hooks | `use-employees.test.tsx`, `use-salary-stats.test.tsx` |
+| UI Components | `button.test.tsx`, `empty-state.test.tsx` |
+| Features | `salary-dashboard.test.tsx` |
 
 ---
 
@@ -169,10 +237,10 @@ frontend/
 
 1. User interacts with UI  
 2. Request sent to backend  
-3. Controller validates input  
+3. Routes validate input  
 4. Service processes logic  
 5. Repository interacts with DB  
-6. Response returned to UI  
+6. Response returned to UI
 
 ---
 
@@ -190,13 +258,19 @@ See: docs/ai-usage.md
 ## ⚖️ Trade-offs & Decisions
 
 ### PostgreSQL vs SQLite
-- PostgreSQL chosen for scalability and realism  
+- SQLite chosen for simplicity and zero-config development
+- Prisma makes migration to PostgreSQL seamless if needed
 
 ### Layered Architecture vs Simple CRUD
 - Layered design improves maintainability  
 
 ### DB Aggregation vs In-Memory
 - DB aggregation ensures better performance  
+
+### Client-Side vs Server-Side Rendering
+- Used Client Components ("use client") for interactive pages
+- Simplifies state management with React Query
+- Next.js App Router ready for SSR migration if needed
 
 ---
 
@@ -206,3 +280,6 @@ See: docs/ai-usage.md
 - Salary trend analysis  
 - Caching layer (Redis)  
 - Real-time analytics  
+- CSV/PDF export for reports
+- Advanced filtering with multiple criteria
+
