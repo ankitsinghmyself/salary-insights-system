@@ -42,10 +42,11 @@ Routes → Service → Repository → Database
 
 ## 🛠 Tech Stack
 
-- Backend: Node.js, Express, TypeScript  
-- Database: SQLite + Prisma (PostgreSQL-ready via Prisma migration)
-- Testing: Jest  
-- API Docs: Swagger  
+- **Backend**: Node.js, Express, TypeScript  
+- **Frontend**: Next.js 16, TypeScript, Tailwind CSS v4, TanStack Query
+- **Database**: SQLite + Prisma (PostgreSQL-ready via Prisma migration)
+- **Testing**: Jest (backend), Vitest (frontend)
+- **API Docs**: Swagger
 
 ---
 
@@ -75,21 +76,60 @@ Routes → Service → Repository → Database
 
 ## 🌱 Data Seeding
 
-Run:
-npm run seed
+Run from the `backend` folder:
 
-- Generates 10,000 employees  
-- Uses batch processing  
+```bash
+cd backend
+npm run seed
+```
+
+- Generates 10,000 employees by default
+- Uses batch processing (1,000 per batch) for performance
+- Supports optional environment variables:
+  - `SEED_RESET=true` — clear existing data before seeding
+  - `SEED_TOTAL=5000` — total records to generate
+  - `SEED_BATCH_SIZE=500` — records per batch
+
+Example:
+```bash
+SEED_RESET=true SEED_TOTAL=5000 npm run seed
+```
+
+> **Note:** Copy `backend/.env.example` to `backend/.env` and adjust values as needed.
 
 ---
 
 ## ⚙️ Setup & Run
 
-npm install  
-npx prisma migrate dev  
-npm run seed  
-npm test  
-npm run dev  
+### Backend
+
+```bash
+cd backend
+cp .env.example .env
+npm install
+npx prisma migrate dev
+npm run seed
+npm run dev        # starts on http://localhost:8000
+npm test           # run Jest tests
+```
+
+### Frontend
+
+```bash
+cd frontend
+cp .env.local.example .env.local
+npm install
+npm run dev        # starts on http://localhost:3000
+npm run test:run   # run Vitest tests
+```
+
+### Start Both
+
+1. Start the backend first (port 8000)
+2. In a new terminal, start the frontend (port 3000)
+3. Open http://localhost:3000 to use the app
+
+> **Important:** The frontend `NEXT_PUBLIC_API_BASE_URL` must point to the running backend (`http://localhost:8000/api` by default).
 
 ---
 
@@ -129,7 +169,6 @@ All logic and final decisions were reviewed manually.
 
 ## 📌 Future Improvements
 
-- Frontend UI (Next.js)  
 - Authentication & role-based access  
 - Advanced salary analytics & trends  
 - Caching layer (Redis)  
@@ -139,7 +178,7 @@ All logic and final decisions were reviewed manually.
 
 ## 🎥 Demo
 
-TODO: (Add your video link here)
+[Recording 2026-04-27 231902.mp4](./Recording%202026-04-27%20231902.mp4)
 
 ---
 
@@ -147,3 +186,4 @@ TODO: (Add your video link here)
 
 Ankit Singh  
 Senior Frontend Engineer (5+ years)
+
