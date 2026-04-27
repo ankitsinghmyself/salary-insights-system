@@ -18,7 +18,7 @@ Design a scalable, maintainable, and testable system to manage employee data and
 
 ## 🧩 High-Level Architecture
 
-Frontend (Next.js)  
+Frontend (Next.js) — *not yet implemented*  
 ↓  
 Backend API (Node.js)  
 ↓  
@@ -26,7 +26,7 @@ Service Layer (Business Logic)
 ↓  
 Repository Layer (Data Access)  
 ↓  
-Database (PostgreSQL)  
+Database (SQLite)
 
 ---
 
@@ -34,12 +34,12 @@ Database (PostgreSQL)
 
 The backend follows a layered architecture:
 
-Controller → Service → Repository → Database  
+Routes → Service → Repository → Database  
 
-### Controller Layer
+### Routes Layer
 - Handles HTTP requests & responses  
 - Performs input validation  
-- Delegates to service layer  
+- Delegates to service layer
 
 ### Service Layer
 - Contains business logic  
@@ -52,8 +52,9 @@ Controller → Service → Repository → Database
 - Abstracts persistence logic  
 
 ### Database Layer
-- PostgreSQL database  
+- SQLite database  
 - Optimized for aggregation queries  
+- Lightweight and zero-config for development
 
 ---
 
@@ -62,14 +63,19 @@ Controller → Service → Repository → Database
 backend/  
   modules/  
     employee/  
-      employee.controller.ts  
-      employee.service.ts  
-      employee.repository.ts  
-      employee.test.ts  
+      employee.routes.ts      # Express routes (HTTP layer)
+      employee.service.ts     # Business logic
+      employee.repository.ts  # Database access
+      employee.types.ts       # TypeScript types
+      employee.validation.ts  # Input validation
+      employee.service.test.ts
+      employee.routes.test.ts
 
     salary/  
-      salary.service.ts  
-      salary.test.ts  
+      salary.routes.ts        # Express routes (HTTP layer)
+      salary.service.ts       # Business logic
+      salary.service.test.ts
+      salary.routes.test.ts
 ```
 ---
 
@@ -83,11 +89,11 @@ backend/
 - fullName: Computed field  
 - jobTitle: Role of employee  
 - country: Employee location  
-- salary: Compensation  
-- currency: Salary currency  
+- salary: Compensation (integer)  
 - department: Department name  
-- experienceYears: Years of experience  
+- experienceYears: Years of experience (default: 0)  
 - createdAt: Timestamp  
+- updatedAt: Timestamp
 
 ---
 
@@ -95,10 +101,12 @@ backend/
 
 All salary insights are computed using database-level aggregation.
 
-### Examples:
-- Average salary by country  
-- Average salary by job title within a country  
-- Min / Max salary per country  
+### Implemented Endpoints:
+- `GET /api/salary/overall-stats` — Overall min / max / avg / total employees  
+- `GET /api/salary/stats/:country` — Min / max / avg salary for a country  
+- `GET /api/salary/average/:country/:jobTitle` — Average salary by role in a country  
+- `GET /api/salary/by-jobtitle` — Average salary grouped by job title globally  
+- `GET /api/salary/top-earners?country=&limit=` — Top earning employees globally or by country
 
 ### Why DB Aggregation?
 
@@ -113,6 +121,7 @@ All salary insights are computed using database-level aggregation.
 ### Indexing
 - Index on `country`  
 - Index on `jobTitle`  
+- Index on `department`
 
 ### Query Optimization
 - Use GROUP BY queries  
@@ -151,6 +160,9 @@ Flow:
 ---
 
 ## 🎨 Frontend Architecture
+
+*Not yet implemented — planned structure:*
+
 ```
 frontend/  
   features/  
@@ -161,7 +173,7 @@ frontend/
 ### Key Concepts
 - Feature-based structure  
 - Reusable components  
-- API abstraction layer  
+- API abstraction layer
 
 ---
 
@@ -169,10 +181,10 @@ frontend/
 
 1. User interacts with UI  
 2. Request sent to backend  
-3. Controller validates input  
+3. Routes validate input  
 4. Service processes logic  
 5. Repository interacts with DB  
-6. Response returned to UI  
+6. Response returned to UI
 
 ---
 
@@ -190,7 +202,8 @@ See: docs/ai-usage.md
 ## ⚖️ Trade-offs & Decisions
 
 ### PostgreSQL vs SQLite
-- PostgreSQL chosen for scalability and realism  
+- SQLite chosen for simplicity and zero-config development
+- Prisma makes migration to PostgreSQL seamless if needed
 
 ### Layered Architecture vs Simple CRUD
 - Layered design improves maintainability  
