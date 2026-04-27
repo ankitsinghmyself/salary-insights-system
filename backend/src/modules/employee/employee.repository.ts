@@ -8,9 +8,9 @@ function buildWhere(
   jobTitle?: string,
   department?: string,
   search?: string
-): { country?: string; jobTitle?: string; department?: string; fullName?: { contains: string } } {
-  const where: { country?: string; jobTitle?: string; department?: string; fullName?: { contains: string } } = {};
-  if (country) where.country = country;
+): { country?: { contains: string }; jobTitle?: string; department?: string; fullName?: { contains: string } } {
+  const where: { country?: { contains: string }; jobTitle?: string; department?: string; fullName?: { contains: string } } = {};
+  if (country) where.country = { contains: country };
   if (jobTitle) where.jobTitle = jobTitle;
   if (department) where.department = department;
   if (search?.trim()) {
@@ -74,9 +74,9 @@ export const employeeRepository = {
     return prisma.employee.count({ where });
   },
 
-  async getSalaryStatsByCountry(country: string): Promise<{ min: number; max: number; avg: number } | null> {
+  async getSalaryStatsByCountry(country: string): Promise<{ country: string; min: number; max: number; avg: number } | null> {
     const result = await prisma.employee.aggregate({
-      where: { country },
+      where: { country: { contains: country } },
       _min: { salary: true },
       _max: { salary: true },
       _avg: { salary: true },
@@ -84,7 +84,13 @@ export const employeeRepository = {
 
     if (result._min.salary === null) return null;
 
+    const firstMatch = await prisma.employee.findFirst({
+      where: { country: { contains: country } },
+      select: { country: true },
+    });
+
     return {
+      country: firstMatch!.country,
       min: result._min.salary,
       max: result._max.salary!,
       avg: Math.round(result._avg.salary!),
@@ -93,7 +99,7 @@ export const employeeRepository = {
 
   async getAverageSalaryByRoleInCountry(country: string, jobTitle: string): Promise<number | null> {
     const result = await prisma.employee.aggregate({
-      where: { country, jobTitle },
+      where: { country: { contains: country }, jobTitle },
       _avg: { salary: true },
     });
 
@@ -136,7 +142,7 @@ export const employeeRepository = {
 
   async getTopEarners(country?: string, limit = 10): Promise<Employee[]> {
     const query: {
-      where?: { country: string };
+      where?: { country: { contains: string } };
       orderBy: { salary: "desc" };
       take: number;
     } = {
@@ -145,7 +151,7 @@ export const employeeRepository = {
     };
 
     if (country) {
-      query.where = { country };
+      query.where = { country: { contains: country } };
     }
 
     return prisma.employee.findMany(query) as Promise<Employee[]>;

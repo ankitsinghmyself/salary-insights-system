@@ -2,20 +2,16 @@
 
 import * as React from "react";
 import { useCountryStats } from "@/hooks/use-salary-stats";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Globe } from "lucide-react";
 
 export function CountryStats() {
   const [country, setCountry] = React.useState("");
-  const [searchCountry, setSearchCountry] = React.useState("");
-  const { data: stats, isLoading } = useCountryStats(searchCountry);
-
-  const handleSearch = () => {
-    setSearchCountry(country.trim());
-  };
+  const debouncedCountry = useDebounce(country, 300);
+  const { data: stats, isLoading } = useCountryStats(debouncedCountry);
 
   return (
     <Card>
@@ -26,16 +22,12 @@ export function CountryStats() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-2 mb-4">
+        <div className="mb-4">
           <Input
             placeholder="Enter country (e.g., USA)"
             value={country}
             onChange={(e) => setCountry(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
-          <Button onClick={handleSearch} size="sm">
-            Search
-          </Button>
         </div>
 
         {isLoading ? (
@@ -44,8 +36,13 @@ export function CountryStats() {
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
-        ) : stats && searchCountry ? (
-          <div className="grid grid-cols-3 gap-4">
+        ) : stats && debouncedCountry ? (
+          <div>
+            <h3 className="text-center text-lg font-semibold text-gray-800 mb-3 capitalize">
+              {stats.country || debouncedCountry}
+            </h3>
+            <div className="grid grid-cols-3 gap-4">
+    
             <div className="text-center p-3 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500">Min</p>
               <p className="text-lg font-bold text-gray-900">
@@ -65,7 +62,8 @@ export function CountryStats() {
               </p>
             </div>
           </div>
-        ) : searchCountry ? (
+          </div>
+        ) : debouncedCountry ? (
           <p className="text-sm text-gray-500 text-center py-4">
             No data found for this country
           </p>

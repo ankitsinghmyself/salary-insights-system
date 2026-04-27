@@ -45,6 +45,16 @@ describe("Salary Routes", () => {
     it("should return salary stats for a country", async () => {
       const res = await request(app).get("/api/salary/stats/India").expect(200);
 
+      expect(res.body.country).toBe("India");
+      expect(res.body.min).toBe(100);
+      expect(res.body.max).toBe(500);
+      expect(res.body.avg).toBe(300);
+    });
+
+    it("should return salary stats case-insensitively", async () => {
+      const res = await request(app).get("/api/salary/stats/india").expect(200);
+
+      expect(res.body.country).toBe("India");
       expect(res.body.min).toBe(100);
       expect(res.body.max).toBe(500);
       expect(res.body.avg).toBe(300);

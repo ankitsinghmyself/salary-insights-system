@@ -82,6 +82,15 @@ describe("Employee Routes", () => {
       expect(res.body.data[0].country).toBe("USA");
     });
 
+    it("should filter by country case-insensitively", async () => {
+      await request(app).post("/api/employees").send(validEmployee).expect(201);
+
+      const res = await request(app).get("/api/employees?country=india").expect(200);
+
+      expect(res.body.data.length).toBe(1);
+      expect(res.body.data[0].country).toBe("India");
+    });
+
     it("should search by full name", async () => {
       await request(app).post("/api/employees").send(validEmployee).expect(201);
       await request(app)
