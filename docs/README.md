@@ -178,7 +178,7 @@ All logic and final decisions were reviewed manually.
 
 ## 🎥 Demo
 
-TODO: (Add your video link here)
+[Recording 2026-04-27 231902.mp4](./Recording%202026-04-27%20231902.mp4)
 
 ---
 
