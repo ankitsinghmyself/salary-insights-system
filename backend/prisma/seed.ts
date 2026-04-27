@@ -19,6 +19,17 @@ const jobTitles = [
   "DevOps Engineer",
 ];
 
+const departments = [
+  "Engineering",
+  "Product",
+  "Design",
+  "Marketing",
+  "Sales",
+  "HR",
+  "Operations",
+  "Finance",
+];
+
 const countries = ["India", "USA", "UK", "Germany", "Canada"];
 
 function generateEmployee() {
@@ -30,8 +41,10 @@ function generateEmployee() {
     lastName,
     fullName: `${firstName} ${lastName}`,
     jobTitle: jobTitles[Math.floor(Math.random() * jobTitles.length)]!,
+    department: departments[Math.floor(Math.random() * departments.length)]!,
     country: countries[Math.floor(Math.random() * countries.length)]!,
     salary: Math.floor(Math.random() * 90000 + 10000),
+    experienceYears: Math.floor(Math.random() * 20),
   };
 }
 

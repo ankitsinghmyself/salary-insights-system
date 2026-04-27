@@ -3,7 +3,7 @@ import { Employee } from "../employee/employee.types";
 
 export const getSalaryStatsByCountry = async (
   country: string
-): Promise<{ min: number; max: number; avg: number } | null> => {
+): Promise<{ country: string; min: number; max: number; avg: number } | null> => {
   return employeeRepository.getSalaryStatsByCountry(country);
 };
 

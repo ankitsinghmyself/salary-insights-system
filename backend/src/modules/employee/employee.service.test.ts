@@ -200,6 +200,13 @@ describe("Employee Service - List", () => {
     expect(result.data.every((e) => e.country === "India")).toBe(true);
   });
 
+  it("should filter by country case-insensitively", async () => {
+    const result = await listEmployees({ country: "india" });
+
+    expect(result.data.length).toBeGreaterThanOrEqual(2);
+    expect(result.data.every((e) => e.country === "India")).toBe(true);
+  });
+
   it("should filter by job title", async () => {
     const result = await listEmployees({ jobTitle: "Manager" });
 

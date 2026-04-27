@@ -125,6 +125,7 @@ router.get("/top-earners", async (req, res, next) => {
  *             schema:
  *               type: object
  *               properties:
+ *                 country: { type: string }
  *                 min: { type: number }
  *                 max: { type: number }
  *                 avg: { type: number }

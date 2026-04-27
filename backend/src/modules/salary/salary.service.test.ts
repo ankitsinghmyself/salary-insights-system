@@ -58,6 +58,16 @@ describe("Salary Service - Insights", () => {
   it("should return min, max, and average salary for a country", async () => {
     const stats = await getSalaryStatsByCountry("India");
 
+    expect(stats!.country).toBe("India");
+    expect(stats!.min).toBe(100);
+    expect(stats!.max).toBe(500);
+    expect(stats!.avg).toBe(300);
+  });
+
+  it("should return salary stats case-insensitively", async () => {
+    const stats = await getSalaryStatsByCountry("india");
+
+    expect(stats!.country).toBe("India");
     expect(stats!.min).toBe(100);
     expect(stats!.max).toBe(500);
     expect(stats!.avg).toBe(300);

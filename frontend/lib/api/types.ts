@@ -39,6 +39,7 @@ export type PaginatedEmployees = {
 };
 
 export type SalaryStats = {
+  country?: string;
   min: number;
   max: number;
   avg: number;
