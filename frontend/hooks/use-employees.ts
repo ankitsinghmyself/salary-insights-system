@@ -20,6 +20,7 @@ export function useEmployees(params: ListEmployeesParams = {}) {
   return useQuery({
     queryKey: employeeKeys.list(params),
     queryFn: () => listEmployees(params),
+    placeholderData: (previousData) => previousData,
   });
 }
 

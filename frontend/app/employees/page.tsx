@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useEmployees, useCreateEmployee, useUpdateEmployee, useDeleteEmployee } from "@/hooks/use-employees";
+import { useDebounce } from "@/hooks/use-debounce";
 import { EmployeeList } from "@/components/features/employee-list";
 import { EmployeeForm } from "@/components/features/employee-form";
 import type { Employee, CreateEmployeeInput } from "@/lib/api/types";
@@ -14,10 +15,16 @@ export default function EmployeesPage() {
   const [formOpen, setFormOpen] = React.useState(false);
   const [editingEmployee, setEditingEmployee] = React.useState<Employee | null>(null);
 
+  const debouncedSearch = useDebounce(search, 300);
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
   const { data, isLoading } = useEmployees({
     limit: PAGE_SIZE,
     offset: (page - 1) * PAGE_SIZE,
-    search: search || undefined,
+    search: debouncedSearch || undefined,
   });
 
   const createMutation = useCreateEmployee();
@@ -76,10 +83,7 @@ export default function EmployeesPage() {
         total={data?.total || 0}
         isLoading={isLoading}
         search={search}
-        onSearchChange={(value) => {
-          setSearch(value);
-          setPage(1);
-        }}
+        onSearchChange={setSearch}
         page={page}
         pageSize={PAGE_SIZE}
         onPageChange={setPage}
