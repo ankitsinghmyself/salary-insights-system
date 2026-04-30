@@ -5,6 +5,10 @@ import {
   getOverallStats,
   getSalaryStatsByCountry,
   getTopEarners,
+  getGrossSalary,
+  getTaxDeduction,
+  getNetSalary,
+  getEmployeeSalaryDetails,
 } from "./salary.service";
 
 const router = Router();
@@ -183,6 +187,155 @@ router.get("/average/:country/:jobTitle", async (req, res, next) => {
       return;
     }
     res.json({ average });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @openapi
+ * /api/salary/gross/{employeeId}:
+ *   get:
+ *     summary: Get gross salary for an employee
+ *     tags: [Salary]
+ *     parameters:
+ *       - in: path
+ *         name: employeeId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Gross salary amount
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 grossSalary: { type: number }
+ *       404:
+ *         description: Employee not found
+ */
+router.get("/gross/:employeeId", async (req, res, next) => {
+  try {
+    const grossSalary = await getGrossSalary(req.params.employeeId);
+    if (grossSalary === null) {
+      res.status(404).json({ message: "Employee not found" });
+      return;
+    }
+    res.json({ grossSalary });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @openapi
+ * /api/salary/tax/{employeeId}:
+ *   get:
+ *     summary: Get tax deduction for an employee
+ *     tags: [Salary]
+ *     parameters:
+ *       - in: path
+ *         name: employeeId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Tax deduction amount
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 taxDeduction: { type: number }
+ *       404:
+ *         description: Employee not found
+ */
+router.get("/tax/:employeeId", async (req, res, next) => {
+  try {
+    const taxDeduction = await getTaxDeduction(req.params.employeeId);
+    if (taxDeduction === null) {
+      res.status(404).json({ message: "Employee not found" });
+      return;
+    }
+    res.json({ taxDeduction });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @openapi
+ * /api/salary/net/{employeeId}:
+ *   get:
+ *     summary: Get net salary after tax for an employee
+ *     tags: [Salary]
+ *     parameters:
+ *       - in: path
+ *         name: employeeId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Net salary amount
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 netSalary: { type: number }
+ *       404:
+ *         description: Employee not found
+ */
+router.get("/net/:employeeId", async (req, res, next) => {
+  try {
+    const netSalary = await getNetSalary(req.params.employeeId);
+    if (netSalary === null) {
+      res.status(404).json({ message: "Employee not found" });
+      return;
+    }
+    res.json({ netSalary });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @openapi
+ * /api/salary/details/{employeeId}:
+ *   get:
+ *     summary: Get complete salary details (gross, tax, net) for an employee
+ *     tags: [Salary]
+ *     parameters:
+ *       - in: path
+ *         name: employeeId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Complete salary details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 employeeId: { type: string }
+ *                 baseSalary: { type: number }
+ *                 grossSalary: { type: number }
+ *                 taxDeduction: { type: number }
+ *                 netSalary: { type: number }
+ *                 country: { type: string }
+ *       404:
+ *         description: Employee not found
+ */
+router.get("/details/:employeeId", async (req, res, next) => {
+  try {
+    const details = await getEmployeeSalaryDetails(req.params.employeeId);
+    if (!details) {
+      res.status(404).json({ message: "Employee not found" });
+      return;
+    }
+    res.json(details);
   } catch (err) {
     next(err);
   }
